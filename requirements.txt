@@ -1,0 +1,11 @@
+# Installed packages
+fastapi
+uvicorn
+torch
+torchvision
+faiss-cpu
+pillow
+python-dotenv
+git+https://github.com/openai/CLIP.git
+qdrant-client
+
