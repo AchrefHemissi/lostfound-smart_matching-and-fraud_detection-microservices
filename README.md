@@ -1,6 +1,4 @@
-# 🧠 lostfound-ai-service
-
-A modular FastAPI microservice for generating and searching image/text embeddings using OpenAI’s CLIP model and a vector store (Qdrant). Designed to be scalable and production-ready.
+Here’s a full breakdown of the project architecture:
 
 ---
 
@@ -70,51 +68,65 @@ lostfound-ai-service/
 - **app/utils/**  
   Utility helpers like image pre-processing.
 
-- **tests/**  
-  Automated tests to ensure service correctness.
+- tests/  
+  Contains all unit and integration tests to ensure the code works correctly and reliably.
 
----
+Those are the main tools used on this project :
 
-## 🧰 Tech Stack & Tools
+fastapi
+🚀 What: A modern web framework for building APIs with Python 3.7+
+📌 Why: You'll use FastAPI to expose your AI model as an API endpoint (e.g., receive a post and return similar items).
+✅ Chosen because it's fast, async-ready, easy to document, and great for microservices.
 
-| Tool                  | Description                                                                     |
-| --------------------- | ------------------------------------------------------------------------------- |
-| **FastAPI**           | 🚀 High-performance Python web framework used to expose the API.                |
-| **Uvicorn**           | ⚡ ASGI server to run FastAPI apps.                                             |
-| **PyTorch**           | 🧠 Deep learning framework used by CLIP.                                        |
-| **Torchvision**       | 🖼️ Image utilities and pretrained models required by CLIP.                      |
-| **FAISS (faiss-cpu)** | 🔍 Fast vector similarity search (for local/dev use).                           |
-| **Pillow**            | 🖼️ Image loading and processing.                                                |
-| **python-dotenv**     | 🔐 Loads secrets and environment variables from `.env`.                         |
-| **CLIP (OpenAI)**     | 📷📝 Creates shared embeddings for images and text.                             |
-| **Qdrant**            | 📦 Vector database for storing and searching embeddings (alternative to FAISS). |
+uvicorn
+🚀 What: A lightning-fast ASGI server to run FastAPI apps
+📌 Why: FastAPI needs an ASGI server to run. Uvicorn handles incoming requests and serves your app.
+✅ Chosen for its performance and compatibility with FastAPI.
 
----
+torch
+🧠 What: PyTorch, a deep learning framework
+📌 Why: CLIP (the model you'll use for embeddings) is built on PyTorch.
+✅ Chosen because CLIP depends on it, and it’s widely used for deep learning.
 
-## ▶️ Running the Project
+torchvision
+🖼️ What: PyTorch’s library for image transformations and pretrained models
+📌 Why: Required by CLIP and helpful for processing images before passing them into the model.
+✅ Chosen because it complements PyTorch perfectly for image tasks.
 
-### 1. Create and activate a virtual environment
+faiss-cpu
+🔍 What: Facebook AI Similarity Search — a library for fast vector search
+📌 Why: You need to find similar vectors (image+text embeddings). FAISS does this super fast, especially on large datasets.
+✅ Chosen for performance in similarity search. You’re using the CPU version for local/dev simplicity.
 
-```bash
-# On macOS/Linux:
-python -m venv venv
-source venv/bin/activate
+pillow
+🖼️ What: A Python image processing library
+📌 Why: You'll need to load and manipulate images before feeding them to CLIP.
+✅ Chosen because it's lightweight, easy to use, and commonly used for image I/O.
 
-# On Windows:
+python-dotenv
+🔐 What: Loads environment variables from a .env file
+📌 Why: You’ll likely want to keep secrets (e.g., API keys, config options) outside your code.
+✅ Chosen because it's simple and helps you follow 12-factor app practices.
+
+git+https://github.com/openai/CLIP.git
+🧠 What: The actual CLIP model (Contrastive Language–Image Pre-training) by OpenAI
+📌 Why: This is the model you're using to create shared embeddings from text & images.
+✅ Chosen because CLIP is state-of-the-art for aligning images and text in the same embedding space.
+
+qdrant-client
+🧠 What: Python SDK for Qdrant — a vector database
+📌 Why: You might store embeddings in a vector DB instead of just FAISS (better for production, filtering, metadata, etc).
+✅ Chosen because Qdrant is modern, open-source, fast, and offers filtering + metadata support.
+
+How to run the project
+
 python -m venv venv
 venv\Scripts\activate
-```
+
+````
 
 ### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
-```
-
-### 3. Start the app
-
-```bash
-uvicorn app.main:app --reload
-```
-
----
+````
