@@ -16,7 +16,7 @@ def get_firebase_post(post_id: str):
 
 def generate_embedding(image_url: str, text: str):
     response = requests.get(image_url)
-    image_bytes = response.content
+    image_bytes = response.content #Extracts the raw image content (in bytes) from the HTTP response.
     return create_clip_embedding(image_bytes, text)
 
 def store_embedding(post_id: str, embedding, metadata):
