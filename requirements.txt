@@ -9,7 +9,7 @@ python-dotenv
 git+https://github.com/openai/CLIP.git
 qdrant-client
 firebase-admin
-protobuf>=6.30.0
+protobuf>=5.26.1,<6.0dev
 
 
 

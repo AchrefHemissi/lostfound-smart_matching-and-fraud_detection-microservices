@@ -1,26 +1,26 @@
 from app.services.clip_service import create_clip_embedding
 from app.services.vector_service import qdrant_store, qdrant_search
-import firebase_admin
-from firebase_admin import credentials, firestore
+from qdrant_client.http.exceptions import ResponseHandlingException
 import requests
+import uuid
 
-cred = credentials.Certificate("firebase_credentials.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-
-def get_firebase_post(post_id: str):
-    doc = db.collection("posts").document(post_id).get()
-    if doc.exists:
-        return doc.to_dict()
-    return None
 
 def generate_embedding(image_url: str, text: str):
-    response = requests.get(image_url)
-    image_bytes = response.content #Extracts the raw image content (in bytes) from the HTTP response.
+    image_bytes = None
+    if image_url:  
+        response = requests.get(image_url)
+        response.raise_for_status()  # Raise an error if the request fails
+        image_bytes = response.content  # Extract the raw image content (in bytes)
+    
+    # Pass image_bytes (can be None) and text to create_clip_embedding
     return create_clip_embedding(image_bytes, text)
 
-def store_embedding(post_id: str, embedding, metadata):
-    qdrant_store(post_id, embedding, metadata)
+def store_embedding(post_id: str, embedding, metadata: dict) -> bool:
+    try:
+        return qdrant_store(post_id, embedding, metadata)
+    except Exception as e:
+        print(f"Error in store_embedding: {e}")
+        return False
 
-def find_similar_embeddings(post_id: str):
-    return qdrant_search(post_id)
+def find_similar_embeddings(post_id :str):
+   return qdrant_search(post_id)

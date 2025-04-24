@@ -1,40 +1,142 @@
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, VectorParams, HnswConfigDiff, OptimizersConfigDiff, WalConfigDiff
+from qdrant_client.models import FieldCondition, Match, Filter
+from app.models.embedding_request import EmbeddingRequest
+from typing import List
+from app.config.qdrant_config import client, COLLECTION_NAME
+import uuid
+import numpy as np
+import time
 
-client = QdrantClient(host="localhost", port=6333)
-COLLECTION_NAME = "lostfound_embeddings"
 
-def qdrant_store(post_id: str, embedding, metadata):
-    client.upsert(
-        collection_name=COLLECTION_NAME,
-        points=[PointStruct(id=post_id, vector=embedding, payload=metadata)]
-    )
+# def get_embedding_by_post_id(post_id: str):
+#     try:
+#         # Retrieve the point by its ID
+#         result = client.retrieve(
+#             collection_name=COLLECTION_NAME,
+#             ids=[int(post_id) if post_id.isdigit() else post_id],
+#             with_vectors=True  # Ensure vectors are included in the response
+#         )
+        
+#         # Check if the result is not empty
+#         if result and result[0].vector is not None:
+#             print(f"Embedding for post_id={post_id}: {result[0].vector}")
+#             return result[0].vector
+#         else:
+#             print(f"No embedding found for post_id={post_id}.")
+#             return None
+#     except Exception as e:
+#         print(f"Error retrieving embedding for post_id={post_id}: {e}")
+#         return None
 
-def qdrant_search(post_id: str):
-    original = client.retrieve(collection_name=COLLECTION_NAME, ids=[post_id])
-    if not original:
+
+def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
+    """Enhanced storage with validation"""
+    try:
+        if isinstance(embedding, np.ndarray):
+            embedding = embedding.astype(np.float32).tolist()  # Force 32-bit floats
+        elif isinstance(embedding, list):
+            embedding = [float(x) for x in embedding]
+        else:
+            raise ValueError(f"Invalid embedding type: {type(embedding)}")
+
+        if len(embedding) != 512:
+            raise ValueError(f"Invalid embedding size: {len(embedding)}")
+
+        point = PointStruct(
+            id=int(post_id) if post_id.isdigit() else post_id,
+            vector=embedding,
+            payload=metadata
+        )
+
+        for attempt in range(3):
+            try:
+                print(f"Attempt {attempt + 1}: Upserting point {point}")
+                client.upsert(
+                    collection_name=COLLECTION_NAME,
+                    points=[point],
+                    wait=True
+                )
+                
+                stored = client.retrieve(
+                    collection_name=COLLECTION_NAME,
+                    ids=[point.id],
+                    with_vectors=True
+                )
+                print(f"Retrieved point: {stored}")
+
+                if stored and stored[0].vector:
+                    print("Storage verification succeeded.")
+                    return True
+                
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                if attempt == 2:  # Last attempt
+                    raise
+                time.sleep(0.5 * (attempt + 1))
+        
+        raise RuntimeError("Storage verification failed after retries")
+        
+    except Exception as e:
+        print(f"Storage failed: {type(e).__name__}: {str(e)}")
+        raise
+
+def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "color", "post_type"]):
+    try:
+    
+        if post_id.isdigit():
+            post_id = int(post_id)  
+        else:
+            post_id = str(uuid.UUID(post_id))
+
+
+        original = client.retrieve(collection_name=COLLECTION_NAME, ids=[post_id], with_vectors=True)
+        if not original:
+            print(f"Post ID {post_id} not found in Qdrant.")
+            return []
+
+        embedding = original[0].vector
+        if embedding is None:
+            print(f"No embedding found for Post ID {post_id}.")
+            return []
+
+        metadata = original[0].payload
+
+        # Build dynamic filter from existing metadata keys
+        conditions = []
+        for key in filter_keys:
+            if key in metadata:
+                if key == "post_type":
+
+                    post_type_values = EmbeddingRequest.__fields__["post_type"].annotation.__args__
+                    # Dynamically use the opposite post_type
+                    if metadata[key] == post_type_values[0]:  # "lostitem"
+                        #conditions.append(FieldCondition(key=key, match=Match(value=EmbeddingRequest.__fields__["post_type"].type.__args__[1])))   "founditem"
+                        conditions.append({"key" : key, "match": {"value": post_type_values[1]} })
+
+                    elif metadata[key] == post_type_values[1]:  # "founditem"
+                        #conditions.append(FieldCondition(key=key, match=Match(value=EmbeddingRequest.__fields__["post_type"].type.__args__[0])))  "lostitem"
+                        conditions.append({"key" : key, "match": {"value": post_type_values[0]}})
+                        
+                else:
+                    # General case for other metadata keys
+                    #conditions.append(FieldCondition(key=key, match=Match(value=metadata[key])))
+                    conditions.append({"key":key, "match": {"value": metadata[key]}})
+
+        q_filter = Filter(must=conditions) if conditions else None
+
+        results = client.search(
+            collection_name=COLLECTION_NAME,
+            query_vector=embedding,
+            limit=2,  # Number of similar items to return
+            query_filter=q_filter
+        )
+
+        return [hit.id for hit in results]
+
+    except ValueError as e:
+        print(f"Invalid post_id format: {post_id}. Must be an integer or UUID.")
         return []
-
-    embedding = original[0].vector
-    metadata = original[0].payload
-
-    # Preselection filter (example: same city and category)
-    city = metadata.get("city")
-    category = metadata.get("category")
-
-    # Build Qdrant filter condition
-    filter = {
-        "must": [
-            {"key": "city", "match": {"value": city}},
-            {"key": "category", "match": {"value": category}},
-        ]
-    }
-
-    hits = client.search(
-        collection_name=COLLECTION_NAME,
-        query_vector=embedding,
-        top=5,
-        query_filter=filter
-    )
-    return [hit.payload for hit in hits]
-
+    except Exception as e:
+        print(f"Error searching for similar embeddings: {e}")
+        return []
