@@ -1,6 +1,8 @@
+from fastapi import HTTPException
 from app.services.clip_service import create_clip_embedding
-from app.services.vector_service import qdrant_store, qdrant_search
+from app.services.vector_service import qdrant_delete, qdrant_store, qdrant_search
 from qdrant_client.http.exceptions import ResponseHandlingException
+from app.config.qdrant_config import client, COLLECTION_NAME
 import requests
 import uuid
 
@@ -24,3 +26,7 @@ def store_embedding(post_id: str, embedding, metadata: dict) -> bool:
 
 def find_similar_embeddings(post_id :str):
    return qdrant_search(post_id)
+
+def delete_embedding(post_ids: list[str]):
+    return qdrant_delete(post_ids)
+

@@ -6,6 +6,5 @@ class EmbeddingRequest(BaseModel):
     post_type: Literal["lostitem", "founditem"]  # validates only these two values
     image_url: Optional[str]  # Make image_url optional
     text: str
-    color: str
     item_type: str
-    date: str  # lost date for lost items or found date for found items
+    
