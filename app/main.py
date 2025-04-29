@@ -8,6 +8,7 @@ app = FastAPI()
 async def startup_event():
     print("Initializing Qdrant collection...")
     initialize_qdrant_collection()
+    
 
 # Root route
 @app.get("/")
