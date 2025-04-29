@@ -30,6 +30,6 @@ def store_embedding(post_id: str, embedding, metadata: dict) -> bool:
 def find_similar_embeddings(post_id :str):
    return qdrant_search(post_id)
 
-def delete_embedding(post_ids: list[str]):
-    return qdrant_delete(post_ids)
+def delete_embedding(post_ids: str):
+    return qdrant_delete([post_ids])
 
