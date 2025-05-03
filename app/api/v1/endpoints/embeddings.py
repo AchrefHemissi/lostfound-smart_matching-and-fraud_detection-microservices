@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.api.dependencies import generate_embedding, store_embedding, find_similar_embeddings
+from app.api.dependencies import delete_embedding, generate_embedding, store_embedding, find_similar_embeddings
 from app.models.embedding_request import EmbeddingRequest
 from app.services.vector_service import client
 #from app.services.vector_service import get_embedding_by_post_id
@@ -42,9 +42,10 @@ async def get_similar(post_id: str):
     results = find_similar_embeddings(post_id)
     return {"results": results}
 
+@router.delete("/delete/{post_id}")
+async def delete_embeddings(post_id: str):
+    return delete_embedding(post_id)
 
-
-    
 # for development purposes only
 
 @router.get("/check_collection")

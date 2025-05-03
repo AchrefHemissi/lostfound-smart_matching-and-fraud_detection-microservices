@@ -3,6 +3,7 @@ from qdrant_client.models import PointStruct, VectorParams, HnswConfigDiff, Opti
 from qdrant_client.models import FieldCondition, Match, Filter
 from app.models.embedding_request import EmbeddingRequest
 from typing import List
+from qdrant_client.models import PointsSelector, PointIdsList
 from app.config.qdrant_config import client, COLLECTION_NAME
 import uuid
 import numpy as np
@@ -44,7 +45,7 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
             raise ValueError(f"Invalid embedding size: {len(embedding)}")
 
         point = PointStruct(
-            id=int(post_id) if post_id.isdigit() else post_id,
+            id=int(post_id) if post_id.isdigit() else str(uuid.UUID(post_id)),
             vector=embedding,
             payload=metadata
         )
@@ -81,7 +82,7 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
         print(f"Storage failed: {type(e).__name__}: {str(e)}")
         raise
 
-def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "color", "post_type"]):
+def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "post_type"]):
     try:
     
         if post_id.isdigit():
@@ -140,3 +141,24 @@ def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "color", 
     except Exception as e:
         print(f"Error searching for similar embeddings: {e}")
         return []
+    
+
+def qdrant_delete(post_ids: list[str]):
+    """Delete embeddings by a list of post IDs."""
+    try:
+        post_ids = [int(post_id) if post_id.isdigit() else str(uuid.UUID(post_id)) for post_id in post_ids]
+        result = client.delete(
+            collection_name=COLLECTION_NAME,
+            points_selector=PointIdsList(points=post_ids),
+            wait=True
+        )
+        return {
+            "status": "success",
+            "message": f"Deleted embeddings with post_ids={post_ids}",
+        }
+    except Exception as e:
+        print(f"Error deleting embeddings: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }

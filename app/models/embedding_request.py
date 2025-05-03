@@ -7,4 +7,4 @@ class EmbeddingRequest(BaseModel):
     image_url: Optional[str]  # Make image_url optional
     text: str
     item_type: str
-    date: str  # lost date for lost items or found date for found items
+    
