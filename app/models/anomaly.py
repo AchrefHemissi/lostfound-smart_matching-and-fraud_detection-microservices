@@ -6,7 +6,7 @@ class Post(BaseModel):
     id: str
     timestamp: datetime
     date : str 
-    image_url: Optional[HttpUrl] = None
+    image_url: Optional[str] = None
     description: Optional[str] = None
 
 class userPosts(BaseModel):

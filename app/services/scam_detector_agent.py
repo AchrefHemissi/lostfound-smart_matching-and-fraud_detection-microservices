@@ -6,6 +6,11 @@ from jsonschema import validate
 import json
 from app.models.anomaly import userPosts, Post, AnomalyResponse
 from app.services import agent_tools
+import os
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 
 class ScamState(dict):
     user_id: str
@@ -26,7 +31,7 @@ LLM_RESPONSE_SCHEMA = {
     "required": ["is_suspicious", "confidence", "suspicious_indicators", "explanation", "recommendation"]
 }
 
-llm = ChatOpenAI(model="gpt-4-1106-preview", temperature=0.1)
+llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.1, openai_api_key=openai_api_key)
 
 def validate_llm_response(response: dict) -> bool:
     try:
