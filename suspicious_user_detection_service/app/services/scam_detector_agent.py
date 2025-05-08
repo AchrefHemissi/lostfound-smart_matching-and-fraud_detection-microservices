@@ -11,7 +11,7 @@ from app.config.config import api_key, api_base
 
 llm = ChatOpenAI(
     model="llama3-8b-8192", 
-    temperature=0.1,
+    temperature=0,
     openai_api_key=api_key,  
     openai_api_base=api_base
 )
@@ -65,8 +65,12 @@ def analyze_user_with_llm(posts: List[Post]) -> dict:
 
     system_prompt = """
 You are an expert fraud and scam detector for social media platforms.
-Analyze these posts to identify potential scammers, spammers, or fraudulent users.
-Look for suspicious patterns such as inconsistent story details, urgent personal information requests, too-good-to-be-true offers, pressure to act quickly, unusual reward mentions, and inconsistent posting style.
+
+Analyze these posts to identify potential scammers, spammers, or fraudulent users. Do not treat the number of posts in a day or the presence of URLs as suspicious — these factors are handled separately.
+
+Focus on meaningful patterns such as inconsistent story details, urgent personal information requests, too-good-to-be-true offers, pressure to act quickly, unusual reward mentions, and inconsistent posting style.
+
+Use judgment rather than strict rules — not all unusual content is suspicious. Be reasonable in your assessment.
 
 Return a single JSON object summarizing the user's overall behavior across all provided posts. Your output MUST be a single object, not a list. The format must be:
 
@@ -126,8 +130,9 @@ def scam_detector_agent(user_posts: userPosts) -> AnomalyResponse:
     # LLM analysis
     analysis = analyze_user_with_llm(user_posts.posts)
     if analysis.get("is_suspicious", False):
-        for indicator in analysis.get("suspicious_indicators", []):
-            suspicious_reasons.append(indicator)
+        if analysis.get("suspicious_indicators", []):
+            for indicator in analysis["suspicious_indicators"]:
+                suspicious_reasons.append(indicator)
             suspicious_score += 1
 
     flagged = suspicious_score >= 3
