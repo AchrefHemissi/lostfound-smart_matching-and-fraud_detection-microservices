@@ -17,4 +17,3 @@ def read_root():
     return {"message": "Welcome to the LostFound AI Service"}
 
 app.include_router(embeddings.router, prefix="/api/v1/embedding")
-app.include_router(anomalydetection.router, prefix="/api/v1/anomalydetection")
