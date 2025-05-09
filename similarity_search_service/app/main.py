@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from app.api.v1.endpoints import embeddings 
-from app.api.v1.endpoints import anomalydetection
 from app.config.qdrant_config import initialize_qdrant_collection
 
 app = FastAPI()
