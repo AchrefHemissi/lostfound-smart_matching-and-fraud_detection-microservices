@@ -1,47 +1,23 @@
 from fastapi import APIRouter, HTTPException
-from app.api.dependencies import delete_embedding, generate_embedding, store_embedding, find_similar_embeddings
+from app.api.v1.dependencies import delete_embedding, generate_embedding, store_embedding, find_similar_embeddings
 from app.models.embedding_request import EmbeddingRequest
 from app.services.vector_service import client
 #from app.services.vector_service import get_embedding_by_post_id
 from app.config.qdrant_config import client, COLLECTION_NAME
 import numpy as np
-from fastapi import APIRouter, Form, UploadFile, File
-from app.models.embedding_request import EmbeddingRequest
-from fastapi import FastAPI, Form, File, UploadFile
-from typing import Literal
-from io import BytesIO
 
 router = APIRouter()
 
 @router.post("/generate")
-async def generate_embedding_endpoint(
-    post_id: str = Form(...),
-    post_type: str = Form(...),
-    text: str = Form(...),
-    item_type: str = Form(...),
-    image_file: UploadFile = File(...)
-):
+async def generate_embedding_endpoint(req: EmbeddingRequest):
     """Enhanced endpoint with better error handling"""
     try:
-        image_bytes = await image_file.read()
-
-        # # Save the image to disk temporarily
-        # with open(f"received_image_{post_id}.jpg", "wb") as f:
-        #     f.write(image_bytes)
-
-        # # Now you can verify the saved image file manually
-        # print(f"Image saved as received_image_{post_id}.jpg")
-
-        embedding = generate_embedding(image_bytes, text)
+        embedding = generate_embedding(req.image_url, req.text)
         if not isinstance(embedding, (list, np.ndarray)) or len(embedding) != 512:
             raise ValueError(f"Invalid embedding: type={type(embedding)}, len={len(embedding)}")
-        metadata = {
-            "post_id": post_id,
-            "post_type": post_type,
-            "item_type": item_type
-        }
-        print(f"Storing embedding for post_id={post_id}")
-        store_result = store_embedding(post_id, embedding, metadata)
+        metadata = req.dict()
+        print(f"Storing embedding for post_id={req.post_id}")
+        store_result = store_embedding(req.post_id, embedding, metadata)
         print(f"Store result: {store_result}")
         
         if not store_result:
@@ -49,7 +25,8 @@ async def generate_embedding_endpoint(
             
         return {
             "status": "success",
-            "post_id": post_id
+            "post_id": req.post_id,
+            "vector_length": len(embedding)
         }
         
     except Exception as e:

@@ -52,7 +52,7 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
 
         for attempt in range(3):
             try:
-                print(f"Attempt {attempt + 1}: Upserting point {point}")
+                print(f"Attempt {attempt + 1}")
                 client.upsert(
                     collection_name=COLLECTION_NAME,
                     points=[point],
@@ -64,7 +64,6 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
                     ids=[point.id],
                     with_vectors=True
                 )
-                print(f"Retrieved point: {stored}")
 
                 if stored and stored[0].vector:
                     print("Storage verification succeeded.")

@@ -9,15 +9,6 @@ import uuid
 
 def generate_embedding(image_name: str, text: str):
 
-    image_bytes = None
-
-    # if image_name:  
-    #     image_url = f"{PROXY_BASE_URL}/download/{image_name}"
-    #     headers = {"X-API-Key": PROXY_API_KEY}
-    #     response = requests.get(image_url, headers=headers)
-    #     response.raise_for_status()
-    #     image_bytes = response.content
-
     return create_clip_embedding(image_name, text)
 
 def store_embedding(post_id: str, embedding, metadata: dict) -> bool:
