@@ -4,7 +4,6 @@ from datetime import datetime
 
 class Post(BaseModel):
     id: str
-    timestamp: datetime
     date : str 
     image_url: Optional[str] = None
     description: Optional[str] = None

@@ -56,7 +56,6 @@ def analyze_user_with_llm(posts: List[Post]) -> dict:
         {
             "id": post.id,
             "text": post.description or "",
-            "timestamp": str(post.timestamp),
             "date": post.date,
             "has_image": bool(post.image_url)
         }

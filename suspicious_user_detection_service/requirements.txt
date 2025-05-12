@@ -19,7 +19,9 @@ numpy
 # Image processing
 imagehash
 PyWavelets
-scipy
+
+
+python-multipart
 
 
 
