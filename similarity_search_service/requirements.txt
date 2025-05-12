@@ -10,6 +10,7 @@ git+https://github.com/openai/CLIP.git
 qdrant-client
 firebase-admin
 protobuf>=5.26.1,<6.0dev
+python-multipart
 
 
 # JSON handling
@@ -22,6 +23,8 @@ numpy
 imagehash
 PyWavelets
 scipy
+
+
 
 
 
