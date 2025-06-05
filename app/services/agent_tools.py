@@ -12,6 +12,7 @@ import os
 load_dotenv()
 PROXY_API_KEY = os.environ["PROXY_API_KEY"]
 PROXY_BASE_URL = os.environ["PROXY_BASE_URL"]
+#only one post  (ken taswira mech mawjouda ystockiha sinon ykoli mawjouda)
 
 def check_duplicate_images(posts: List[Post]) -> Optional[str]:
     """Detect if the user has posted the same image more than once (by perceptual hash)."""
@@ -33,7 +34,7 @@ def check_duplicate_images(posts: List[Post]) -> Optional[str]:
                 print(f"Image check error for {blob_name}: {e}")
     return None
 
-def check_links(posts: List[Post]) -> Optional[str]:
+def check_links(post: List[Post]) -> Optional[str]:
     """Detect if any post contains an external link."""
     link_pattern = re.compile(r"(https?://\S+|www\.\S+)", re.IGNORECASE)
     for post in posts:
