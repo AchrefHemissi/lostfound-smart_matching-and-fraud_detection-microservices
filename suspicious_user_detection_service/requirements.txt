@@ -23,5 +23,4 @@ PyWavelets
 
 python-multipart
 
-
-
+redis[asyncio]
