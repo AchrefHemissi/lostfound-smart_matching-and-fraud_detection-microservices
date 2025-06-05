@@ -3,10 +3,13 @@ from typing import Literal, Optional, Dict, Any, List
 from datetime import datetime
 
 class Post(BaseModel):
-    id: str
-    date : str 
-    image_url: Optional[str] = None
-    description: Optional[str] = None
+    userid: str 
+    postid: str
+    date: str 
+    posttype: str
+    text : str
+    itemtype: str
+    imagefile: str
 
 class userPosts(BaseModel):
     user_id: str  # Changed to snake_case for consistency

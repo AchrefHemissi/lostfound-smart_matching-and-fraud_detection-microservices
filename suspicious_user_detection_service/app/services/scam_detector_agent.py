@@ -51,27 +51,24 @@ def extract_json_object(text: str):
             idx += 1
     raise ValueError("No valid JSON object found")
 
-def analyze_user_with_llm(posts: List[Post]) -> dict:
-    formatted_posts = [
-        {
-            "id": post.id,
-            "text": post.description or "",
+def analyze_user_with_llm(post: Post) -> dict:
+    formatted_post= {
+            "id": post.postid,
+            "text": post.text or "",
             "date": post.date,
-            "has_image": bool(post.image_url)
+            "has_image": bool(post.imagefile)
         }
-        for post in posts[:5]
-    ]
-
+    
     system_prompt = """
 You are an expert fraud and scam detector for social media platforms.
 
-Analyze these posts to identify potential scammers, spammers, or fraudulent users. Do not treat the number of posts in a day or the presence of URLs as suspicious — these factors are handled separately.
+Analyze this post to identify potential scammers, spammers, or fraudulent users. Do not treat the presence of URLs as suspicious — this factor is handled separately.
 
 Focus on meaningful patterns such as inconsistent story details, urgent personal information requests, too-good-to-be-true offers, pressure to act quickly, unusual reward mentions, and inconsistent posting style.
 
 Use judgment rather than strict rules — not all unusual content is suspicious. Be reasonable in your assessment.
 
-Return a single JSON object summarizing the user's overall behavior across all provided posts. Your output MUST be a single object, not a list. The format must be:
+Return a single JSON object summarizing the user's overall behavior across the provided post. Your output MUST be a single object, not a list. The format must be:
 
 {
   "is_suspicious": true or false,
@@ -82,7 +79,7 @@ Return a single JSON object summarizing the user's overall behavior across all p
 }
 """
 
-    user_prompt = f"POSTS:\n{json.dumps(formatted_posts, indent=2)}\nProvide your analysis in the JSON format specified."
+    user_prompt = f"POSTS:\n{json.dumps(formatted_post, indent=2)}\nProvide your analysis in the JSON format specified."
 
     messages = [
         SystemMessage(content=system_prompt),
@@ -111,23 +108,23 @@ Return a single JSON object summarizing the user's overall behavior across all p
         }
 
 # Main function to analyze user posts
-def scam_detector_agent(user_posts: userPosts) -> AnomalyResponse:
+async def scam_detector_agent(user_post:Post) -> AnomalyResponse:
     suspicious_reasons = []
     suspicious_score = 0
 
     # Run tools (all expect List[Post])
-    if (reason := agent_tools.check_duplicate_images(user_posts.posts)):
+    if (reason := await agent_tools.check_duplicate_images(user_post)):
         suspicious_reasons.append(reason)
         suspicious_score += 1
-    if (reason := agent_tools.check_links(user_posts.posts)):
+    if (reason := await agent_tools.check_links(user_post )):
         suspicious_reasons.append(reason)
         suspicious_score += 1
-    if (reason := agent_tools.check_post_frequency(user_posts.posts)):
+    if (reason := await agent_tools.check_post_frequency(user_post)):
         suspicious_reasons.append(reason)
         suspicious_score += 1
 
     # LLM analysis
-    analysis = analyze_user_with_llm(user_posts.posts)
+    analysis = analyze_user_with_llm(user_post)
     if analysis.get("is_suspicious", False):
         if analysis.get("suspicious_indicators", []):
             for indicator in analysis["suspicious_indicators"]:

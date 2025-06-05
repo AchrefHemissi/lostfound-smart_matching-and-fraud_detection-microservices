@@ -1,15 +1,11 @@
 from app.config.redis_client import redis_client, test_redis
 
-async def add_to_set(set_key: str, value: str, ttl_seconds: int = 86400):
+async def add_to_set(set_key: str, value: str, ttl_seconds: int = 86400*30):
     exists = await redis_client.exists(set_key)
-    
+    result= redis_client.sadd(set_key, value)
     if not exists:
-        await redis_client.sadd(set_key, value)
         await redis_client.expire(set_key, ttl_seconds)
-    else:
-        await redis_client.sadd(set_key, value)
-
-    return True
+    return result
 
 async def is_member_of_set(set_key: str, value: str) -> bool:
     return await redis_client.sismember(set_key, value)

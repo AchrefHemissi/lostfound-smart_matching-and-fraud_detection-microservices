@@ -7,40 +7,36 @@ from collections import Counter
 from typing import List, Optional
 from app.models.anomaly import Post
 from app.config.config import PROXY_BASE_URL, PROXY_API_KEY
+from app.repositories.redis_repo import add_to_set, is_member_of_set,increment_id_key
 
-
-def check_duplicate_images(posts: List[Post]) -> Optional[str]:
+async def check_duplicate_images(post: Post) -> Optional[str]:
     """Detect if the user has posted the same image more than once (by perceptual hash)."""
-    seen_hashes = {}
-    for post in posts:
-        if post.image_url:
-            blob_name = str(post.image_url).split("/")[-1]
-            download_url = f"{PROXY_BASE_URL}/download/{blob_name}"
+    if post.imagefile:
             try:
-                headers = {"x-api-key": PROXY_API_KEY}
-                resp = requests.get(download_url, headers=headers)
-                resp.raise_for_status()
-                image = Image.open(io.BytesIO(resp.content))
+                image = Image.open(io.BytesIO(post.imagefile))
                 img_hash = str(imagehash.phash(image))
-                if img_hash in seen_hashes:
-                    return f"Duplicate image detected in posts {seen_hashes[img_hash]} and {post.id}"
-                seen_hashes[img_hash] = post.id
+                if add_to_set(f"{post.userid}_image_hashes", img_hash)==0:
+                    print("duplicate image detected")
+                    return f"Duplicate image detected in posts for user {post.userid}"
             except Exception as e:
-                print(f"Image check error for {blob_name}: {e}")
+                print(f"Error processing image for user {post.userid}: {e}")
     return None
 
-def check_links(posts: List[Post]) -> Optional[str]:
-    """Detect if any post contains an external link."""
+async def check_links(post: Post) -> Optional[str]:
     link_pattern = re.compile(r"(https?://\S+|www\.\S+)", re.IGNORECASE)
-    for post in posts:
-        if post.description and link_pattern.search(post.description):
-            return f"External link detected in post {post.id}"
+    if post.text and link_pattern.search(post.text):
+            flaggedposts = await increment_id_key(f"{post.userid}_external_links", 86400*30)
+            return (f"External link detected in post {post.postid}")
+  
     return None
 
-def check_post_frequency(posts: List[Post]) -> Optional[str]:
-    """Detect if user made 3 or more posts in a single day."""
-    date_counts = Counter(post.date for post in posts if post.date)
-    for date, count in date_counts.items():
-        if count >= 3:
-            return f"High posting frequency: {count} posts on {date}"
-    return None
+async def check_post_frequency(post: Post) -> Optional[str]:
+    try :
+        """Detect if user made 3 or more posts in a single day."""
+        print(await increment_id_key(f"{post.userid}_daily_posts", 86400))
+        if int(await increment_id_key(f"{post.userid}_daily_posts", 86400)) >= 3:
+            return f"User {post.userid} has made 3 or more posts in a single day."
+        return None
+    except Exception as e:
+        print(f"Error checking post frequency for user {post.userid}: {e}")
+        return None

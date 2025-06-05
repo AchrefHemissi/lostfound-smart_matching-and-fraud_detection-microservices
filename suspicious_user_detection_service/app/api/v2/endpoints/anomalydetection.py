@@ -1,5 +1,5 @@
 from fastapi import APIRouter, File, Form, UploadFile
-from app.models.anomaly import userPosts, AnomalyResponse
+from app.models.anomaly import Post, userPosts, AnomalyResponse
 from app.services.scam_detector_agent import scam_detector_agent
 from app.config.redis_client import redis_client, test_redis
 from app.repositories.redis_repo import test
@@ -8,15 +8,27 @@ router = APIRouter()
 
 @router.post("/detect")
 async def detect_suspicious_user(
+    user_id: str = Form(...),
     post_id: str = Form(...),
     post_type: str = Form(...),
     text: str = Form(...),
+    date: str = Form(...),  # Assuming date is passed as a string
     item_type: str = Form(...),
     image_file: UploadFile = File(...)):
 
+    image_content = await image_file.read()
 
-    return {"message": "Suspicious user detected"}
+    post = Post(
+        userid=user_id,
+        postid=post_id,
+        posttype=post_type,
+        date=date,
+        text=text,
+        itemtype=item_type,
+        imagefile=image_content
+    )
 
+    return await  scam_detector_agent(post)
 
 @router.get("/test_redis/")
 async def get_key():
