@@ -1,3 +1,4 @@
+import base64
 from fastapi import APIRouter, File, Form, UploadFile
 from app.models.anomaly import Post, userPosts, AnomalyResponse
 from app.services.scam_detector_agent import scam_detector_agent
@@ -17,6 +18,7 @@ async def detect_suspicious_user(
     image_file: UploadFile = File(...)):
 
     image_content = await image_file.read()
+    image_base64 = base64.b64encode(image_content).decode("utf-8")
 
     post = Post(
         userid=user_id,
@@ -25,7 +27,7 @@ async def detect_suspicious_user(
         date=date,
         text=text,
         itemtype=item_type,
-        imagefile=image_content
+        imagefile=image_base64
     )
 
     return await  scam_detector_agent(post)

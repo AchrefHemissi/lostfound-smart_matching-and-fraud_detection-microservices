@@ -1,3 +1,4 @@
+import base64
 import requests
 from PIL import Image
 import io
@@ -13,9 +14,10 @@ async def check_duplicate_images(post: Post) -> Optional[str]:
     """Detect if the user has posted the same image more than once (by perceptual hash)."""
     if post.imagefile:
             try:
-                image = Image.open(io.BytesIO(post.imagefile))
+                image_bytes = base64.b64decode(post.imagefile)
+                image = Image.open(io.BytesIO(image_bytes))
                 img_hash = str(imagehash.phash(image))
-                if add_to_set(f"{post.userid}_image_hashes", img_hash)==0:
+                if await add_to_set(f"{post.userid}_image_hashes", img_hash)==0:
                     print("duplicate image detected")
                     return f"Duplicate image detected in posts for user {post.userid}"
             except Exception as e:
@@ -33,7 +35,6 @@ async def check_links(post: Post) -> Optional[str]:
 async def check_post_frequency(post: Post) -> Optional[str]:
     try :
         """Detect if user made 3 or more posts in a single day."""
-        print(await increment_id_key(f"{post.userid}_daily_posts", 86400))
         if int(await increment_id_key(f"{post.userid}_daily_posts", 86400)) >= 3:
             return f"User {post.userid} has made 3 or more posts in a single day."
         return None

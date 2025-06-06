@@ -2,7 +2,7 @@ from app.config.redis_client import redis_client, test_redis
 
 async def add_to_set(set_key: str, value: str, ttl_seconds: int = 86400*30):
     exists = await redis_client.exists(set_key)
-    result= redis_client.sadd(set_key, value)
+    result= await redis_client.sadd(set_key, value)
     if not exists:
         await redis_client.expire(set_key, ttl_seconds)
     return result
