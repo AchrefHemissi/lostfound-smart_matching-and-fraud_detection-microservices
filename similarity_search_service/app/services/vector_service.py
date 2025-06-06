@@ -8,28 +8,7 @@ from app.config.qdrant_config import client, COLLECTION_NAME
 import uuid
 import numpy as np
 import time
-
-
-# def get_embedding_by_post_id(post_id: str):
-#     try:
-#         # Retrieve the point by its ID
-#         result = client.retrieve(
-#             collection_name=COLLECTION_NAME,
-#             ids=[int(post_id) if post_id.isdigit() else post_id],
-#             with_vectors=True  # Ensure vectors are included in the response
-#         )
-        
-#         # Check if the result is not empty
-#         if result and result[0].vector is not None:
-#             print(f"Embedding for post_id={post_id}: {result[0].vector}")
-#             return result[0].vector
-#         else:
-#             print(f"No embedding found for post_id={post_id}.")
-#             return None
-#     except Exception as e:
-#         print(f"Error retrieving embedding for post_id={post_id}: {e}")
-#         return None
-
+from app.repositories.neo4j_repository import create_similarity_relationship, delete_post
 
 def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
     """Enhanced storage with validation"""
@@ -132,6 +111,9 @@ def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "post_typ
             query_filter=q_filter
         )
 
+        for hit in results:
+            create_similarity_relationship(post_id, hit.id)
+
         return [hit.id for hit in results]
 
     except ValueError as e:
@@ -146,6 +128,8 @@ def qdrant_delete(post_ids: list[str]):
     """Delete embeddings by a list of post IDs."""
     try:
         post_ids = [int(post_id) if post_id.isdigit() else str(uuid.UUID(post_id)) for post_id in post_ids]
+        for post_id in post_ids:
+            delete_post(post_id)
         result = client.delete(
             collection_name=COLLECTION_NAME,
             points_selector=PointIdsList(points=post_ids),

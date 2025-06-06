@@ -24,7 +24,7 @@ imagehash
 PyWavelets
 scipy
 
-
+neo4j
 
 
 

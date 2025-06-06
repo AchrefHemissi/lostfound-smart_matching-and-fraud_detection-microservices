@@ -45,17 +45,20 @@ def create_clip_embedding(image_bytes: bytes | None, text: str | None) -> list[f
 
             # Process text if provided
             if text:
-                text_tokens = clip.tokenize([text]).to(device)
+                # Truncate input text before tokenization to ~256 characters (safe approx. for 77 tokens)
+                max_chars = 256
+                truncated_text = text[:max_chars]
+                text_tokens = clip.tokenize([truncated_text]).to(device)
                 text_feat = model.encode_text(text_tokens)
                 text_feat /= text_feat.norm(dim=-1, keepdim=True)  # Normalize
 
-            # Combine features
+            # Combine features if both exist
             if image_feat is not None and text_feat is not None:
                 combined = (image_feat + text_feat) / 2
             else:
                 combined = image_feat if image_feat is not None else text_feat
 
-            # Verify output
+            # Verify output embedding size
             embedding = combined[0].cpu().numpy()
             if embedding.shape[0] != 512:
                 raise RuntimeError(f"Unexpected embedding size: {embedding.shape}")

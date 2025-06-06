@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
-from app.api.v2.dependencies import generate_embedding, store_embedding, find_similar_embeddings
+from typing import List
+from fastapi import APIRouter, HTTPException, Query
+from app.api.v2.dependencies import delete_embedding, generate_embedding, store_embedding, find_similar_embeddings
+from app.repositories.neo4j_repository import delete_post, get_similar_posts
 from app.services.vector_service import client
 #from app.services.vector_service import get_embedding_by_post_id
 import numpy as np
@@ -54,3 +56,13 @@ async def generate_embedding_endpoint(
             status_code=500,
             detail=f"Failed: {str(e)}"
         )
+
+@router.get("/similar/{post_id}")
+def similar_posts(post_id: str):
+    similar = get_similar_posts(post_id)
+    return {"similar_posts": similar}
+
+
+@router.delete("/delete")
+def remove_multiple_posts(post_ids: List[str] = Query(...)):
+    return delete_embedding(post_ids)

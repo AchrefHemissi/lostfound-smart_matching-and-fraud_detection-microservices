@@ -8,33 +8,33 @@ import numpy as np
 
 router = APIRouter()
 
-@router.post("/generate")
-async def generate_embedding_endpoint(req: EmbeddingRequest):
-    """Enhanced endpoint with better error handling"""
-    try:
-        embedding = generate_embedding(req.image_url, req.text)
-        if not isinstance(embedding, (list, np.ndarray)) or len(embedding) != 512:
-            raise ValueError(f"Invalid embedding: type={type(embedding)}, len={len(embedding)}")
-        metadata = req.dict()
-        print(f"Storing embedding for post_id={req.post_id}")
-        store_result = store_embedding(req.post_id, embedding, metadata)
-        print(f"Store result: {store_result}")
+# @router.post("/generate")
+# async def generate_embedding_endpoint(req: EmbeddingRequest):
+#     """Enhanced endpoint with better error handling"""
+#     try:
+#         embedding = generate_embedding(req.image_url, req.text)
+#         if not isinstance(embedding, (list, np.ndarray)) or len(embedding) != 512:
+#             raise ValueError(f"Invalid embedding: type={type(embedding)}, len={len(embedding)}")
+#         metadata = req.dict()
+#         print(f"Storing embedding for post_id={req.post_id}")
+#         store_result = store_embedding(req.post_id, embedding, metadata)
+#         print(f"Store result: {store_result}")
         
-        if not store_result:
-            raise RuntimeError("Storage verification failed")
+#         if not store_result:
+#             raise RuntimeError("Storage verification failed")
             
-        return {
-            "status": "success",
-            "post_id": req.post_id,
-            "vector_length": len(embedding)
-        }
+#         return {
+#             "status": "success",
+#             "post_id": req.post_id,
+#             "vector_length": len(embedding)
+#         }
         
-    except Exception as e:
-        print(f"Error in /generate endpoint: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed: {str(e)}"
-        )
+#     except Exception as e:
+#         print(f"Error in /generate endpoint: {e}")
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Failed: {str(e)}"
+#         )
 
 
 @router.get("/similar/{post_id}")

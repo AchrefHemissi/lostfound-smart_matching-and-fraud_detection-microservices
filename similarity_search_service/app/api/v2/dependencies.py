@@ -1,11 +1,6 @@
 from fastapi import HTTPException
 from app.services.clip_service import create_clip_embedding
 from app.services.vector_service import qdrant_delete, qdrant_store, qdrant_search
-from qdrant_client.http.exceptions import ResponseHandlingException
-from app.config.qdrant_config import client, COLLECTION_NAME
-from app.config.config import PROXY_API_KEY, PROXY_BASE_URL
-import requests
-import uuid
 
 def generate_embedding(image_name: str, text: str):
 
@@ -22,5 +17,4 @@ def find_similar_embeddings(post_id :str):
    return qdrant_search(post_id)
 
 def delete_embedding(post_ids: str):
-    return qdrant_delete([post_ids])
-
+    return qdrant_delete(post_ids)
