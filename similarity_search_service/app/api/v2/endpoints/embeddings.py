@@ -43,7 +43,10 @@ async def generate_embedding_endpoint(
             raise RuntimeError("Storage verification failed")
 
         results = find_similar_embeddings(post_id)
-        return {"results": results}
+        return {
+            "id": post_id,
+            "results": results
+            }
         
     except Exception as e:
         print(f"Error in /generate endpoint: {e}")
