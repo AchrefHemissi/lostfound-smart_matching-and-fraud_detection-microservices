@@ -1,6 +1,6 @@
 # Suspicious User Detection Service
 
-This service is part of the LostFound system [FoundIT-Computer-Vision-Powered-Lost-and-Found-Mobile-Application](https://github.com/AchrefHemissi/FoundIT-Computer-Vision-Powered-Lost-and-Found-Mobile-Application)
+This service is part of the [FoundIT-Computer-Vision-Powered-Lost-and-Found-Mobile-Application](https://github.com/AchrefHemissi/FoundIT-Computer-Vision-Powered-Lost-and-Found-Mobile-Application)
 , specifically designed to identify and flag suspicious user activities and potentially fraudulent reports. It plays a crucial role in maintaining the integrity and security of the platform by analyzing user behavior and report patterns.
 
 ## Overview
