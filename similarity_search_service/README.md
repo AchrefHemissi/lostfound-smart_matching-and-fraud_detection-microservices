@@ -70,12 +70,6 @@ lostfound-ai-service/
 - **app/models/**  
   Pydantic schemas for request validation and response shaping.
 
-- **app/utils/**  
-  Utility helpers like image pre-processing.
-
-- **tests/**  
-  Automated tests to ensure service correctness.
-
 ---
 
 ## 🧰 Tech Stack & Tools
