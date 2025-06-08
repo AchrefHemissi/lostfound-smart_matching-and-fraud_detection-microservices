@@ -18,10 +18,17 @@ lostfound-ai-service/
 │   │   │   └── endpoints/
 │   │   │       └── embeddings.py   # API routes for text/image embedding
 │   │   └── dependencies.py         # Shared dependencies (model loaders, DB, etc.)
+|   |   ├── v2/
+│   │   │   └── endpoints/
+│   │   │       └── embeddings.py   # API routes for text/image embedding
+│   │   └── dependencies.py         # Shared dependencies (model loaders, DB, etc.)
 │   │
 │   ├── core/               # Core settings and configuration
 │   │   ├── config.py       # Loads environment variables and app settings
-│   │   └── logger.py       # App-wide logging configuration
+│   │   |
+|   |   ├── neo4j_config.py 
+|   |   |
+|   |   ├──qdrant_config.py
 │   │
 │   ├── services/           # Core business logic
 │   │   ├── clip_service.py     # CLIP model loading and embedding
@@ -29,15 +36,7 @@ lostfound-ai-service/
 │   │
 │   ├── models/             # Pydantic request/response models
 │   │   └── embedding_request.py
-│   │
-│   └── utils/              # Utility functions
-│       └── image_utils.py  # Image preprocessing for CLIP
 │
-├── tests/                  # Unit and integration tests
-│   ├── test_clip_service.py
-│   └── test_vector_service.py
-│
-├── test_images/            # Sample images for testing
 ├── .env                    # Environment variables
 ├── requirements.txt        # Python dependencies
 └── README.md               # Project overview and instructions
