@@ -121,16 +121,6 @@ NEO4J_PASSWORD=your_password
 uvicorn app.main:app --reload
 ```
 
----
-
-## 📌 Notes
-
-- Supports both remote and base64 image input (configurable).
-- Qdrant metadata filters can be enabled for scoped queries.
-- Neo4j optional integration allows graph-based reranking or caching.
-
----
-
 ## 👥 Authors
 
 Developed by the FoundIt Team — INSAT 2025
