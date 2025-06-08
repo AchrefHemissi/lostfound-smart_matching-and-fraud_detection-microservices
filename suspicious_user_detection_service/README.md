@@ -1,119 +1,52 @@
+# Suspicious User Detection Service
 
-# 🧠 lostfound-ai-service
+This service is part of the LostFound system, specifically designed to identify and flag suspicious user activities and potentially fraudulent reports. It plays a crucial role in maintaining the integrity and security of the platform by analyzing user behavior and report patterns.
 
-A modular FastAPI microservice for generating and searching image/text embeddings using OpenAI’s CLIP model and a vector store (Qdrant). Designed to be scalable and production-ready.
+## Overview
 
----
+The `suspicious_user_detection_service` is a microservice that consumes messages related to user activities and reports. It processes this information to detect anomalies that might indicate fraudulent behavior or suspicious patterns. The service leverages **Redis** for efficient data storage and retrieval, which is essential for real-time analysis and quick flagging of suspicious entities.
 
-## 📁 Project Structure
+## Key Features
 
-```text
-lostfound-ai-service/
-│
-├── app/                     # Main application code
-│   ├── main.py             # FastAPI app entry point
-│   │
-│   ├── api/                # API layer (HTTP routes and dependencies)
-│   │   ├── v1/
-│   │   │   └── endpoints/
-│   │   │       └── embeddings.py   # API routes for text/image embedding
-│   │   └── dependencies.py         # Shared dependencies (model loaders, DB, etc.)
-│   │
-│   ├── core/               # Core settings and configuration
-│   │   ├── config.py       # Loads environment variables and app settings
-│   │   └── logger.py       # App-wide logging configuration
-│   │
-│   ├── services/           # Core business logic
-│   │   ├── clip_service.py     # CLIP model loading and embedding
-│   │   └── vector_service.py   # Vector database (Qdrant/FAISS) operations
-│   │
-│   ├── models/             # Pydantic request/response models
-│   │   └── embedding_request.py
-│   │
-│   └── utils/              # Utility functions
-│       └── image_utils.py  # Image preprocessing for CLIP
-│
-├── tests/                  # Unit and integration tests
-│   ├── test_clip_service.py
-│   └── test_vector_service.py
-│
-├── test_images/            # Sample images for testing
-├── .env                    # Environment variables
-├── requirements.txt        # Python dependencies
-└── README.md               # Project overview and instructions
-```
+*   **Real-time Anomaly Detection**: Processes incoming user data and reports to identify unusual activities as they occur.
+*   **Integration with Redis**: Utilizes Redis for fast access to user profiles, historical data, and blacklists, enabling rapid fraud checks.
+*   **Scalable Architecture**: Designed as a microservice, allowing it to scale independently based on the load and complexity of detection tasks.
 
----
+## Technologies Used
 
-## 🔍 Component Descriptions
+*   **Python**: The primary programming language for the service logic.
+*   **Redis**: Used as a high-performance in-memory data store for caching and quick lookups.
+*   **Docker**: For containerization, ensuring consistent deployment across different environments.
+*   **Docker Compose**: For defining and running multi-container Docker applications, simplifying the setup of the service and its dependencies.
 
-- **app/main.py**  
-  Initializes and runs the FastAPI app.
+## Setup and Installation
 
-- **app/api/**  
-  Defines all HTTP-accessible routes and shared dependencies.
+To get the `suspicious_user_detection_service` up and running, follow these steps:
 
-- **app/api/v1/endpoints/embeddings.py**  
-  POST endpoints to embed images or text.
+1.  **Clone the main repository**:
 
-- **app/api/dependencies.py**  
-  Reusable FastAPI dependencies like model loaders, DB sessions.
+    ```bash
+    git clone https://github.com/AchrefHemissi/lostfound-smart_matching-and-fraud_detection-microservices.git
+    cd lostfound-smart_matching-and-fraud_detection-microservices/suspicious_user_detection_service
+    ```
 
-- **app/core/**  
-  Environment configuration and logging setup.
+2.  **Environment Configuration**: Ensure you have a `.env` file or equivalent environment variables configured for any necessary credentials or settings (e.g., Redis connection details). While not explicitly detailed in the public repository, this is a common practice for microservices.
 
-- **app/services/**  
-  Main logic for interacting with CLIP and the vector store.
+3.  **Build and Run with Docker Compose**:
 
-- **app/models/**  
-  Pydantic schemas for request validation and response shaping.
+    Navigate to the `suspicious_user_detection_service` directory and execute the following command:
 
-- **app/utils/**  
-  Utility helpers like image pre-processing.
+    ```bash
+    docker-compose up --build
+    ```
 
-- **tests/**  
-  Automated tests to ensure service correctness.
+    This command will:
+    *   Build the Docker image for the service.
+    *   Start the service container along with its dependencies, such as a Redis instance.
 
----
+## Usage
 
-## 🧰 Tech Stack & Tools
+Once the service is running, it will listen for messages from the RabbitMQ `task_queue_suspicious` (as indicated in the overall system architecture). It will process these messages, perform its detection logic, and then send results back to the `result_suspicious_queue` for the Gateway to consume.
 
-| Tool               | Description |
-|--------------------|-------------|
-| **FastAPI**        | 🚀 High-performance Python web framework used to expose the API. |
-| **Uvicorn**        | ⚡ ASGI server to run FastAPI apps. |
-| **PyTorch**        | 🧠 Deep learning framework used by CLIP. |
-| **Torchvision**    | 🖼️ Image utilities and pretrained models required by CLIP. |
-| **FAISS (faiss-cpu)** | 🔍 Fast vector similarity search (for local/dev use). |
-| **Pillow**         | 🖼️ Image loading and processing. |
-| **python-dotenv**  | 🔐 Loads secrets and environment variables from `.env`. |
-| **CLIP (OpenAI)**  | 📷📝 Creates shared embeddings for images and text. |
-| **Qdrant**         | 📦 Vector database for storing and searching embeddings (alternative to FAISS). |
 
----
 
-## ▶️ Running the Project
-
-### 1. Create and activate a virtual environment
-
-```bash
-# On macOS/Linux:
-python -m venv venv
-source venv/bin/activate
-
-# On Windows:
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 2. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Start the app
-
-```bash
-uvicorn app.main:app --reload
-```
