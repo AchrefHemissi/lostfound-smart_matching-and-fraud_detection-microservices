@@ -54,6 +54,9 @@ lostfound-ai-service/
 
 - **app/api/v1/endpoints/embeddings.py**  
   POST endpoints to embed images or text.
+  
+- **app/api/v2/endpoints/embeddings.py**  
+  POST endpoints to embed images or text.
 
 - **app/api/dependencies.py**  
   Reusable FastAPI dependencies like model loaders, DB sessions.
