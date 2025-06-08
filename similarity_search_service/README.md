@@ -1,103 +1,97 @@
-
 # 🧠 lostfound-ai-service
 
-A modular FastAPI microservice for generating and searching image/text embeddings using OpenAI’s CLIP model and a vector store (Qdrant). Designed to be scalable and production-ready.
+A modular, scalable, and production-ready FastAPI microservice for generating and searching multimodal (image/text) embeddings using OpenAI’s CLIP model. Supports high-dimensional similarity search via Qdrant or FAISS.
 
 ---
 
 ## 📁 Project Structure
 
-```text
+```
 lostfound-ai-service/
 │
-├── app/                     # Main application code
-│   ├── main.py             # FastAPI app entry point
+├── app/
+│   ├── main.py                     # FastAPI app entry point
 │   │
-│   ├── api/                # API layer (HTTP routes and dependencies)
+│   ├── api/                        # API layer (HTTP routes and dependencies)
 │   │   ├── v1/
 │   │   │   └── endpoints/
-│   │   │       └── embeddings.py   # API routes for text/image embedding
-│   │   └── dependencies.py         # Shared dependencies (model loaders, DB, etc.)
-|   |   ├── v2/
+│   │   │       └── embeddings.py   # V1 routes for embedding operations
+│   │   ├── v2/
 │   │   │   └── endpoints/
-│   │   │       └── embeddings.py   # API routes for text/image embedding
-│   │   └── dependencies.py         # Shared dependencies (model loaders, DB, etc.)
+│   │   │       └── embeddings.py   # V2 routes for embedding operations
+│   │   └── dependencies.py         # Shared dependencies (model loaders, DB clients, etc.)
 │   │
-│   ├── core/               # Core settings and configuration
-│   │   ├── config.py       # Loads environment variables and app settings
-│   │   |
-|   |   ├── neo4j_config.py 
-|   |   |
-|   |   ├──qdrant_config.py
+│   ├── core/                       # App-wide configuration and settings
+│   │   ├── config.py               # Loads environment variables and settings
+│   │   ├── neo4j_config.py         # Neo4j DB client config (optional)
+│   │   └── qdrant_config.py        # Qdrant vector store client config
 │   │
-│   ├── services/           # Core business logic
-│   │   ├── clip_service.py     # CLIP model loading and embedding
-│   │   └── vector_service.py   # Vector database (Qdrant/FAISS) operations
+│   ├── services/                   # Business logic and model interaction
+│   │   ├── clip_service.py         # Handles CLIP model loading and inference
+│   │   └── vector_service.py       # Vector DB operations (Qdrant, FAISS)
 │   │
-│   ├── models/             # Pydantic request/response models
-│   │   └── embedding_request.py
+│   ├── models/                     # Pydantic request/response models
+│   │   └── embedding_request.py    # Request schema for embedding endpoint
 │
-├── .env                    # Environment variables
-├── requirements.txt        # Python dependencies
-└── README.md               # Project overview and instructions
+├── .env                            # Environment variables for local/dev
+├── requirements.txt                # Project dependencies
+└── README.md                       # This documentation file
 ```
 
 ---
 
 ## 🔍 Component Descriptions
 
-- **app/main.py**  
+- **`main.py`**  
   Initializes and runs the FastAPI app.
 
-- **app/api/**  
-  Defines all HTTP-accessible routes and shared dependencies.
+- **`api/v1/endpoints/embeddings.py`**  
+  V1 embedding routes (standard CLIP use with basic inputs).
 
-- **app/api/v1/endpoints/embeddings.py**  
-  POST endpoints to embed images or text.
-  
-- **app/api/v2/endpoints/embeddings.py**  
-  POST endpoints to embed images or text.
+- **`api/v2/endpoints/embeddings.py`**  
+  V2 routes with potential support for extended metadata or indexing.
 
-- **app/api/dependencies.py**  
-  Reusable FastAPI dependencies like model loaders, DB sessions.
+- **`dependencies.py`**  
+  Provides shared FastAPI `Depends` such as Qdrant, CLIP model, or Neo4j clients.
 
-- **app/core/**  
-  Environment configuration and logging setup.
+- **`core/config.py`**  
+  Loads and validates configuration using `python-dotenv` and `pydantic`.
 
-- **app/services/**  
-  Main logic for interacting with CLIP and the vector store.
+- **`services/clip_service.py`**  
+  Loads the CLIP model, handles image/text preprocessing, and returns unified 512-dim embeddings.
 
-- **app/models/**  
-  Pydantic schemas for request validation and response shaping.
+- **`services/vector_service.py`**  
+  Handles upsert, search, and delete operations on Qdrant or FAISS vector store.
 
 ---
 
 ## 🧰 Tech Stack & Tools
 
-| Tool               | Description |
-|--------------------|-------------|
-| **FastAPI**        | 🚀 High-performance Python web framework used to expose the API. |
-| **Uvicorn**        | ⚡ ASGI server to run FastAPI apps. |
-| **PyTorch**        | 🧠 Deep learning framework used by CLIP. |
-| **Torchvision**    | 🖼️ Image utilities and pretrained models required by CLIP. |
-| **FAISS (faiss-cpu)** | 🔍 Fast vector similarity search (for local/dev use). |
-| **Pillow**         | 🖼️ Image loading and processing. |
-| **python-dotenv**  | 🔐 Loads secrets and environment variables from `.env`. |
-| **CLIP (OpenAI)**  | 📷📝 Creates shared embeddings for images and text. |
-| **Qdrant**         | 📦 Vector database for storing and searching embeddings (alternative to FAISS). |
+| Tool               | Purpose |
+|--------------------|---------|
+| **FastAPI**        | Web API framework |
+| **Uvicorn**        | ASGI server |
+| **PyTorch**        | Deep learning framework |
+| **Torchvision**    | Preprocessing & image transforms |
+| **Pillow**         | Image handling |
+| **CLIP (OpenAI)**  | Embedding model (ViT-B/32) |
+| **Qdrant**         | Scalable vector DB for similarity search |
+| **Neo4j**          | Optional graph DB for similarity caching |
+| **FAISS (optional)** | Local/dev vector search alternative |
+| **python-dotenv**  | Loads environment variables from `.env` |
 
 ---
 
-## ▶️ Running the Project
+## ▶️ Getting Started
 
 ### 1. Create and activate a virtual environment
 
 ```bash
-# On macOS/Linux:
+# macOS/Linux
 python -m venv venv
 source venv/bin/activate
 
-# On Windows:
+# Windows
 python -m venv venv
 venv\Scripts\activate
 ```
@@ -108,8 +102,37 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Start the app
+### 3. Set environment variables
+
+Create a `.env` file in the root with content similar to:
+
+```env
+QDRANT_HOST=http://localhost:6333
+CLIP_MODEL=ViT-B/32
+USE_FAISS=False
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+```
+
+### 4. Run the FastAPI server
 
 ```bash
 uvicorn app.main:app --reload
 ```
+
+---
+
+## 📌 Notes
+
+- Supports both remote and base64 image input (configurable).
+- Qdrant metadata filters can be enabled for scoped queries.
+- Neo4j optional integration allows graph-based reranking or caching.
+
+---
+
+## 👥 Authors
+
+Developed by the FoundIt Team — INSAT 2025
+
+---
