@@ -10,7 +10,17 @@ import numpy as np
 import time
 from app.repositories.neo4j_repository import create_similarity_relationship, delete_post
 
-def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
+
+def safe_post_id(post_id: str):
+    if post_id.isdigit():
+        return int(post_id)
+    try:
+        return str(uuid.UUID(post_id))
+    except (ValueError, AttributeError, TypeError):
+        # Generate a deterministic UUID from the string
+        return str(uuid.uuid5(uuid.NAMESPACE_DNS, post_id))
+
+def qdrant_store(post_id, embedding, metadata: dict) -> bool:
     """Enhanced storage with validation"""
     try:
         if isinstance(embedding, np.ndarray):
@@ -24,9 +34,9 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
             raise ValueError(f"Invalid embedding size: {len(embedding)}")
 
         point = PointStruct(
-            id=int(post_id) if post_id.isdigit() else str(uuid.UUID(post_id)),
+            id=safe_post_id(post_id),
             vector=embedding,
-            payload=metadata
+            payload={**metadata, "original_post_id": post_id}
         )
 
         for attempt in range(3):
@@ -62,14 +72,11 @@ def qdrant_store(post_id: str, embedding, metadata: dict) -> bool:
 
 def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "post_type"]):
     try:
-    
-        if post_id.isdigit():
-            post_id = int(post_id)  
-        else:
-            post_id = str(uuid.UUID(post_id))
+        """Search for similar embeddings based on a post_id."""
 
+        qdrant_post_id = safe_post_id(post_id)
 
-        original = client.retrieve(collection_name=COLLECTION_NAME, ids=[post_id], with_vectors=True)
+        original = client.retrieve(collection_name=COLLECTION_NAME, ids=[qdrant_post_id], with_vectors=True)
         if not original:
             print(f"Post ID {post_id} not found in Qdrant.")
             return []
@@ -112,9 +119,9 @@ def qdrant_search(post_id: str, filter_keys: List[str] = ["item_type", "post_typ
         )
 
         for hit in results:
-            create_similarity_relationship(post_id, hit.id)
+            create_similarity_relationship(post_id, hit.payload.get("original_post_id", hit.id))
 
-        return [hit.id for hit in results]
+        return [hit.payload.get("original_post_id", hit.id) for hit in results]
 
     except ValueError as e:
         print(f"Invalid post_id format: {post_id}. Must be an integer or UUID.")

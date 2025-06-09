@@ -18,3 +18,4 @@ def find_similar_embeddings(post_id :str):
 
 def delete_embedding(post_ids: str):
     return qdrant_delete(post_ids)
+

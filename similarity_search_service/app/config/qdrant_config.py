@@ -3,7 +3,7 @@ from qdrant_client.models import VectorParams, HnswConfigDiff, OptimizersConfigD
 
 # Initialize Qdrant client
 client = QdrantClient(host="localhost", port=6333, timeout=30)
-COLLECTION_NAME = "test_collection"
+COLLECTION_NAME = "last_collection"
 
 def initialize_qdrant_collection():
     try:
